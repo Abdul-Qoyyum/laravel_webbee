@@ -104,18 +104,7 @@ class EventsController extends BaseController
 
     public function getEventsWithWorkshops() {
 //        throw new \Exception('implement in coding task 1');
-        $events = Event::all();
-        $workshops = Workshop::all();
-        foreach ($events as $event){
-            $event->workshops = [];
-            foreach ($workshops as $workshop){
-                if($workshop->event_id === $event->id){
-                    $event->workshops[] = $workshop;
-                }
-            }
-        }
-//Log::info($events);
-        return $events;
+        return Event::with('workshops')->get();
     }
 
 
@@ -194,6 +183,21 @@ class EventsController extends BaseController
      */
 
     public function getFutureEventsWithWorkshops() {
-        throw new \Exception('implement in coding task 2');
+//        throw new \Exception('implement in coding task 2');
+        $events = Event::where("id",">",1)->get();
+        $eventIds = Event::where("id",">",1)->pluck('id')->toArray();
+        $workshops = Workshop::whereIn('event_id',$eventIds)->get();
+        foreach ($events as $event){
+            foreach ($workshops as $workshop){
+                if($workshop->event_id === $event->id){
+                    $event->workshops[] = $workshop;
+                }
+            }
+        }
+
+        //will still work
+//        $events = Event::where("id",">",1)->with("workshops")->get();
+
+        return $events;
     }
 }
