@@ -37,7 +37,36 @@ class CreateCinemaSchema extends Migration
      */
     public function up()
     {
-        throw new \Exception('implement in coding task 4, you can ignore this exception if you are just running the initial migrations.');
+//        throw new \Exception('implement in coding task 4, you can ignore this exception if you are just running the initial migrations.');
+        Schema::create('locations', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('name');
+        });
+
+        Schema::create('movies', function (Blueprint $table) {
+            $table->increments('id');
+            $table->float('price', 8, 2);
+            $table->string('seat_number');
+            $table->date('show_date');
+            $table->time('show_time');
+            $table->boolean('is_booked_out')->default(false); //indicates movies with available seats
+            $table->enum('seat_type', ['default','seat_couple','seat_super','vip']); //we can calculate price based on the seat_type
+            $table->integer('location_id')->unsigned();
+            $table->foreign('location_id')
+                ->references('id')
+                ->on('locations')
+                ->onDelete('cascade');
+            $table->foreignId('user_id')->constrained(); //owner
+        });
+
+        //many-to-many relationship with the user
+        Schema::create('user_cinema', function (Blueprint $table){
+            $table->increments('id');
+            $table->bigInteger('user_id')->unsigned();
+            $table->integer('movie_id')->unsigned();
+            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('movie_id')->references('id')->on('movies');
+        });
     }
 
     /**
@@ -47,5 +76,8 @@ class CreateCinemaSchema extends Migration
      */
     public function down()
     {
+        Schema::dropIfExists('locations');
+        Schema::dropIfExists('movies');
+        Schema::dropIfExists('user_cinema');
     }
 }
