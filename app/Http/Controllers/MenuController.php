@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Models\MenuItem;
 use Illuminate\Routing\Controller as BaseController;
+use Illuminate\Support\Facades\Log;
 
 class MenuController extends BaseController
 {
@@ -93,7 +94,29 @@ class MenuController extends BaseController
     ]
      */
 
-    public function getMenuItems() {
-        throw new \Exception('implement in coding task 3');
+    public function getMenuItems(): array
+    {
+//        throw new \Exception('implement in coding task 3');
+        $menuItems = MenuItem::with("children")->get();
+        $tree = [];
+        $children = [];
+        $rootNode = null;
+        foreach ($menuItems as $menuItem){
+           if(!$menuItem->parent_id)$rootNode = $menuItem;
+           if($menuItem->parent_id && $menuItem->children()->count() > 0){
+               $children[] = $menuItem;
+           }
+           if ($menuItem->children()->count() == 0){
+               $menuItem->children = [];
+           }
+        }
+
+        if($rootNode){
+            unset($rootNode->children);
+            $rootNode->children = $children;
+            $tree[] = $rootNode;
+        }
+
+        return $tree;
     }
 }
